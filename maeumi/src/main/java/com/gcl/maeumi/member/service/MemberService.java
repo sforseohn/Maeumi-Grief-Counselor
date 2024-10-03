@@ -21,11 +21,11 @@ public class MemberService {
     }
 
     @Transactional
-    public boolean join(SignupRequestDto signupRequestDto) {
+    public Optional<Member> join(SignupRequestDto signupRequestDto) {
         // username 중복 체크
         Optional<Member> originMember = memberRepository.findByUsername(signupRequestDto.getUsername());
         if (originMember.isPresent()) {
-            return false;
+            return Optional.empty();
         }
 
         // 비밀번호 암호화
@@ -41,6 +41,6 @@ public class MemberService {
         // 회원 정보 저장
         memberRepository.save(newMember);
 
-        return true;
+        return Optional.of(newMember);
     }
 }

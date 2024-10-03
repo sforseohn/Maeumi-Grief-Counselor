@@ -16,15 +16,15 @@ public class ApiResponse<T> {
     private T data;
     private String message;
 
-    public static <T> ApiResponse<T> createSuccess(T data) {
-        return new ApiResponse<>(SUCCESS_STATUS, data, null);
+    public static <T> ApiResponse<T> createSuccess(T data, String message) {
+        return new ApiResponse<>(SUCCESS_STATUS, data, message);
     }
 
     public static <T> ApiResponse<T> createSuccessWithNoContent() {
         return new ApiResponse<>(SUCCESS_STATUS, null, null);
     }
 
-    public static <T> ApiResponse<T> createError(String message) {
+    public static <T> ApiResponse<T> createFail(String message) {
         return new ApiResponse<>(ERROR_STATUS, null, message);
     }
 
