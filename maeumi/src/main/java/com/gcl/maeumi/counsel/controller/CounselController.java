@@ -7,10 +7,7 @@ import com.gcl.maeumi.member.repository.MemberRepository;
 import com.gcl.maeumi.response.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
@@ -24,8 +21,8 @@ public class CounselController {
 
     @PostMapping("/addResponse")
     public ApiResponse<String> addResponse(@RequestBody DialogflowRequestDto request) {
-        long userId = (Integer) request.getQueryResult().getParameters().get("userId");
-        Integer sessionNumber = (Integer) request.getQueryResult().getParameters().get("sessionNumber");
+        long userId = Long.parseLong((String) request.getQueryResult().getParameters().get("userId"));
+        Integer sessionNumber = Integer.parseInt((String) request.getQueryResult().getParameters().get("sessionNumber"));
 
         Optional<Member> member = memberRepository.findById(userId);
         if (!member.isPresent()) {

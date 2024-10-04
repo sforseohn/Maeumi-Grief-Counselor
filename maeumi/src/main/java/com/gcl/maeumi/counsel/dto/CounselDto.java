@@ -12,16 +12,14 @@ import java.util.Map;
 public class CounselDto {
     @Data
     @AllArgsConstructor
-    public class DialogflowRequestDto {
+    public static class DialogflowRequestDto {
         private String session;
         private QueryResult queryResult;
 
+        @Getter
         public static class QueryResult {
+            private String queryText;
             private Map<String, Object> parameters;
-
-            public Map<String, Object> getParameters() {
-                return parameters;
-            }
         }
     }
 }

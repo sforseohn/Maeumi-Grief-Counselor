@@ -24,10 +24,10 @@ public class CounselService {
     public Optional<Counsel> processUserResponse(DialogflowRequestDto request) {
         // 세션 ID, 질문 ID, 사용자 응답 추출
         String sessionId = extractSessionId(request.getSession());
-        Integer questionId = (Integer) request.getQueryResult().getParameters().get("questionId");
-        String userResponse = (String) request.getQueryResult().getParameters().get("userResponse");
-        long userId = (Integer) request.getQueryResult().getParameters().get("userId");
-        Integer sessionNumber = (Integer) request.getQueryResult().getParameters().get("sessionNumber");
+        Integer questionId = Integer.parseInt((String) request.getQueryResult().getParameters().get("questionId"));
+        String userResponse = (String) request.getQueryResult().getQueryText();
+        long userId = Long.parseLong((String) request.getQueryResult().getParameters().get("userId"));
+        Integer sessionNumber = Integer.parseInt((String) request.getQueryResult().getParameters().get("sessionNumber"));
 
         Optional<Member> member = memberRepository.findById(userId);
         if (!member.isPresent()) {
@@ -40,10 +40,6 @@ public class CounselService {
 
         if (existingCounsel.isPresent()) {
             newCounsel = existingCounsel.get();
-
-            // 사용자의 responses에 이어서 저장
-            newCounsel.addResponse(questionId, userResponse);
-
         } else {
             newCounsel = Counsel.builder()
                     .member(member.get())
@@ -52,6 +48,7 @@ public class CounselService {
                     .startTime(new Date())
                     .build();
         }
+        newCounsel.addResponse(questionId, userResponse);
         counselRepository.save(newCounsel);
 
         return Optional.of(newCounsel);
