@@ -1,6 +1,7 @@
 package com.gcl.maeumi.counsel.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.gcl.maeumi.counsel.service.ResponseData;
 import com.gcl.maeumi.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -38,7 +39,7 @@ public class Counsel {
 
     @Column(nullable = true)
     @ElementCollection
-    private List<ResponseData> responses;
+    private List<ResponseData> responses = new ArrayList<>();;
 
     @Column(nullable = false)
     private Date startTime;
@@ -47,31 +48,16 @@ public class Counsel {
     private Date endTime;
 
     @Builder
-    public Counsel(Long id, Member member, String sessionId, int sessionNumber, Date startTime, Date endTime) {
+    public Counsel(Long id, Member member, String sessionId, int sessionNumber, Date startTime) {
         this.id = id;
         this.member = member;
         this.sessionId = sessionId;
         this.sessionNumber = sessionNumber;
         this.startTime = startTime;
-        this.endTime = endTime;
-        this.responses = new ArrayList<>();
-    }
-
-    @Embeddable
-    public static class ResponseData {
-        private Integer questionId;
-        private String userResponse;
-
-        public ResponseData() {}
-
-        public ResponseData(Integer questionId, String userResponse) {
-            this.questionId = questionId;
-            this.userResponse = userResponse;
-        }
     }
 
     public void addResponse(Integer questionId, String userResponse) {
-        this.responses.add(new Counsel.ResponseData(questionId, userResponse));
+        this.responses.add(new ResponseData(questionId, userResponse));
     }
 
     @Override
