@@ -1,4 +1,6 @@
+/*
 package com.gcl.maeumi.config;
+
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,14 +29,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()  // 모든 요청 허용
                 )
-                /*
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers( "/api/").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/**").permitAll()  // 모든 API GET 요청 허용
                         .anyRequest().authenticated()  // 그 외 요청은 인증 필요
-                )*/
+                )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // JWT 사용 시 Stateless 설정
                 .build();
     }
 }
+*/

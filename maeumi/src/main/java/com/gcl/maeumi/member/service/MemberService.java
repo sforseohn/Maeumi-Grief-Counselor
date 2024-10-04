@@ -4,7 +4,7 @@ import com.gcl.maeumi.member.dto.MemberDto.SignupRequestDto;
 import com.gcl.maeumi.member.entity.Member;
 import com.gcl.maeumi.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.security.crypto.password.PasswordEncoder;
+//import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,11 +13,16 @@ import java.util.Optional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
+    //private final PasswordEncoder passwordEncoder;
 
+    /*
     public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
+    }*/
+
+    public MemberService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
     }
 
     @Transactional
@@ -29,12 +34,12 @@ public class MemberService {
         }
 
         // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
+        //String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
 
         // 회원 생성 및 저장
         Member newMember = Member.builder()
                 .username(signupRequestDto.getUsername())
-                .password(encodedPassword)
+                .password(signupRequestDto.getPassword())
                 .name(signupRequestDto.getName())
                 .build();
 
