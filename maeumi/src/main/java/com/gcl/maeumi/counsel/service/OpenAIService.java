@@ -19,10 +19,10 @@ public class OpenAIService {
     private static final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
 
     @Value("${openai.api-key}")
+    private String apiKey;
     private final OkHttpClient client;
 
     public OpenAIService() {
-        this.apiKey = API_KEY;
         // Create OkHttpClient with a timeout of 300 seconds
         this.client = new OkHttpClient.Builder()
                 .readTimeout(50, TimeUnit.SECONDS)
