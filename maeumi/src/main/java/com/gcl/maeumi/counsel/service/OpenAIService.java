@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class OpenAIService {
-    private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions/";
+    private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
     private static final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
 
     @Value("${openai.api-key}")
@@ -29,60 +29,87 @@ public class OpenAIService {
                 .build();
     }
 
-    public String analyzeEmotion(String promptText, String testSentence) throws IOException {
-        JSONArray messagesArray = new JSONArray();
+    public String analyzeEmotion(String promptText, String testSentence) {
+        try {
+            // 프롬프트와 사용자 입력을 바탕으로 요청 생성
+            JSONObject requestBody = createRequestBody(promptText, testSentence);
+            // OpenAI API 요청 전송
+            String responseJson = getOpenAIResponse(requestBody);
+            // string 형식으로 감정 분석 결과 반환
+            return extractContent(responseJson);
+        } catch (Exception e) {
+            logger.error("Error analyzing emotion: {}", e.getMessage(), e);
+            return null;
+        }
+    }
 
-        JSONObject systemMessage = new JSONObject();
-        systemMessage.put("role", "system");
-        systemMessage.put("content", promptText);
-        messagesArray.put(systemMessage);
+    // OpenAI API 요청 생성
+    private JSONObject createRequestBody(String promptText, String testSentence) {
+        JSONArray messagesArray = new JSONArray()
+                .put(new JSONObject().put("role", "system").put("content", promptText))
+                .put(new JSONObject().put("role", "user").put("content", testSentence));
 
-        JSONObject userMessage = new JSONObject();
-        userMessage.put("role", "user");
-        userMessage.put("content", testSentence);
-        messagesArray.put(userMessage);
+        return new JSONObject()
+                .put("model", "gpt-4o-mini")
+                .put("messages", messagesArray);
+    }
 
-        JSONObject requestBody = new JSONObject();
-        requestBody.put("model", "gpt-4o-mini");
-        requestBody.put("messages", messagesArray);
-
+    // OpenAI API 요청을 보내고 응답 반환
+    private String getOpenAIResponse(JSONObject requestBody) throws IOException {
         RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody.toString());
 
         Request request = new Request.Builder()
-                .url("https://api.openai.com/v1/chat/completions")
+                .url(OPENAI_URL)
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Content-Type", "application/json")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            System.out.println("gpt response: " + response.code() + response.message());
-            if (response.isSuccessful()) {
-                String responseBody = response.body().string();
+            String responseBody = response.body().string();
 
-                JSONObject responseJson = new JSONObject(responseBody);
-                JSONObject choicesObject = responseJson.getJSONArray("choices").getJSONObject(0);
-                String content = choicesObject.getJSONObject("message").getString("content");
+            if (!response.isSuccessful()) {
+                // OpenAI API에서 반환하는 에러 메시지 가져오기
+                String errorMessage = "Unknown error";
+                try {
+                    JSONObject errorJson = new JSONObject(responseBody);
+                    errorMessage = errorJson.has("error") ? errorJson.getJSONObject("error").getString("message") : response.message();
+                } catch (Exception e) {
+                    logger.error("Failed to parse error response: {}", e.getMessage(), e);
+                }
 
-                return content;
-            } else {
-                // 응답 실패 시 상태 코드와 메시지를 출력
-                logger.error("Request failed with status code: {} and message: {}",
-                        response.code(), response.message());
+                // 로그 출력 (HTTP 코드 + 상세 에러 메시지)
+                logger.error("OpenAI API Request failed: HTTP {} - {} | Error: {}", response.code(), response.message(), errorMessage);
             }
-        } catch (Exception e) {
-            logger.error("An unexpected error occurred: {}", e.getMessage(), e);
+            return responseBody;
         }
-
-        return null;
     }
 
-    private List<String> jsonArrayToList(JSONArray jsonArray) {
-        List<String> list = new ArrayList<>();
-        for (int i = 0; i < jsonArray.length(); i++) {
-            list.add(jsonArray.getString(i));
+    // OpenAI API 응답에서 감정 분석 결과 추출
+    private String extractContent(String responseJson) {
+        if (responseJson == null) {
+            return null;
         }
-        return list;
 
+        JSONObject responseObj = new JSONObject(responseJson);
+        // OpenAI API의 정상 응답인지 확인
+        if (responseObj.has("choices")) {
+            return responseObj.getJSONArray("choices")
+                    .getJSONObject(0)
+                    .getJSONObject("message")
+                    .getString("content");
+        }
+
+        // 오류 응답이 있을 경우 에러 메시지 반환
+        if (responseObj.has("error")) {
+            JSONObject errorObj = responseObj.getJSONObject("error");
+            String errorMessage = errorObj.optString("message", "Unknown error");
+            String errorCode = errorObj.optString("code", "Unknown code");
+
+            logger.error("OpenAI API Error: Code: {}, Message: {}", errorCode, errorMessage);
+            return "Error: " + errorMessage + " (Code: " + errorCode + ")";
+        }
+
+        return "Error: Unexpected response format.";
     }
 }
