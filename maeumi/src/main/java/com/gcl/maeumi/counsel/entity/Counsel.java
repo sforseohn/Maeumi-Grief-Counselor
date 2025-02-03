@@ -2,15 +2,13 @@ package com.gcl.maeumi.counsel.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.gcl.maeumi.counsel.service.ResponseData;
-import com.gcl.maeumi.member.entity.Member;
+import com.gcl.maeumi.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,8 +26,8 @@ public class Counsel {
 
     @JsonBackReference
     @ManyToOne
-    @JoinColumn(name="member_id")
-    private Member member;
+    @JoinColumn(name="user_id")
+    private User user;
 
     @Column(nullable = false, unique = true)
     private String sessionId;
@@ -48,9 +46,9 @@ public class Counsel {
     private Date endTime;
 
     @Builder
-    public Counsel(Long id, Member member, String sessionId, int sessionNumber, Date startTime) {
+    public Counsel(Long id, User user, String sessionId, int sessionNumber, Date startTime) {
         this.id = id;
-        this.member = member;
+        this.user = user;
         this.sessionId = sessionId;
         this.sessionNumber = sessionNumber;
         this.startTime = startTime;

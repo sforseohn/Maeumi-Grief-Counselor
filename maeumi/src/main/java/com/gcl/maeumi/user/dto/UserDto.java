@@ -1,4 +1,4 @@
-package com.gcl.maeumi.member.dto;
+package com.gcl.maeumi.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class MemberDto {
+public class UserDto {
     @Data
     @AllArgsConstructor
     public static class SignupRequestDto{

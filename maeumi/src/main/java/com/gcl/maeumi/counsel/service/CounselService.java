@@ -3,13 +3,12 @@ package com.gcl.maeumi.counsel.service;
 import com.gcl.maeumi.counsel.dto.CounselDto.DialogflowRequestDto;
 import com.gcl.maeumi.counsel.entity.Counsel;
 import com.gcl.maeumi.counsel.repository.CounselRepository;
-import com.gcl.maeumi.member.entity.Member;
-import com.gcl.maeumi.member.repository.MemberRepository;
+import com.gcl.maeumi.user.entity.User;
+import com.gcl.maeumi.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
 
@@ -18,7 +17,7 @@ public class CounselService {
     @Autowired
     private CounselRepository counselRepository;
     @Autowired
-    private MemberRepository memberRepository;
+    private UserRepository userRepository;
 
     @Transactional
     public Optional<Counsel> processUserResponse(DialogflowRequestDto request) {
@@ -29,8 +28,8 @@ public class CounselService {
         long userId = Long.parseLong((String) request.getQueryResult().getParameters().get("userId"));
         Integer sessionNumber = Integer.parseInt((String) request.getQueryResult().getParameters().get("sessionNumber"));
 
-        Optional<Member> member = memberRepository.findById(userId);
-        if (!member.isPresent()) {
+        Optional<User> user = userRepository.findById(userId);
+        if (!user.isPresent()) {
             return Optional.empty();
         }
 
@@ -42,7 +41,7 @@ public class CounselService {
             newCounsel = existingCounsel.get();
         } else {
             newCounsel = Counsel.builder()
-                    .member(member.get())
+                    .user(user.get())
                     .sessionId(sessionId)
                     .sessionNumber(sessionNumber)
                     .startTime(new Date())

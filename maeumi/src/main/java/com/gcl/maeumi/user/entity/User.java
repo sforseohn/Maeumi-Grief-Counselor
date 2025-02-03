@@ -1,4 +1,4 @@
-package com.gcl.maeumi.member.entity;
+package com.gcl.maeumi.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.gcl.maeumi.counsel.entity.Counsel;
@@ -8,16 +8,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
 
 import java.util.List;
 
 @Entity
-@Table(name = "`member`")
+@Table(name = "`users`")
 @Getter
 @NoArgsConstructor
-public class Member {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,11 +37,11 @@ public class Member {
     private String connectionTime;
 
     @JsonManagedReference
-    @OneToMany(cascade=CascadeType.ALL, mappedBy="member", orphanRemoval=true)
+    @OneToMany(cascade=CascadeType.ALL, mappedBy="user", orphanRemoval=true)
     private List<Counsel> counsels;
 
     @Builder
-    private Member(Long id, String username, String password, String name) {
+    private User(Long id, String username, String password, String name) {
         this.id = id;
         this.username = username;
         this.password = password;
