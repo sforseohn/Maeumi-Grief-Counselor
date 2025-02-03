@@ -1,6 +1,6 @@
-package com.gcl.maeumi.counsel.controller;
+package com.gcl.maeumi.answer.controller;
 
-import com.gcl.maeumi.counsel.service.OpenAIService;
+import com.gcl.maeumi.answer.service.OpenAIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

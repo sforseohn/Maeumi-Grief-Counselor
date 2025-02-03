@@ -1,15 +1,11 @@
 package com.gcl.maeumi.user.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.gcl.maeumi.counsel.entity.Counsel;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-
-import java.util.List;
 
 @Entity
 @Table(name = "`users`")
@@ -35,10 +31,6 @@ public class User {
 
     @Column(nullable = true)
     private String connectionTime;
-
-    @JsonManagedReference
-    @OneToMany(cascade=CascadeType.ALL, mappedBy="user", orphanRemoval=true)
-    private List<Counsel> counsels;
 
     @Builder
     private User(Long id, String username, String password, String name) {

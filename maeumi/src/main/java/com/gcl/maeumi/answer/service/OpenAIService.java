@@ -1,4 +1,4 @@
-package com.gcl.maeumi.counsel.service;
+package com.gcl.maeumi.answer.service;
 
 import okhttp3.*;
 import org.json.JSONArray;
@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
