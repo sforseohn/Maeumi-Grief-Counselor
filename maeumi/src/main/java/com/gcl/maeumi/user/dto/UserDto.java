@@ -8,6 +8,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class UserDto {
+
     @Data
     @AllArgsConstructor
     public static class SignupRequestDto{
@@ -16,8 +17,8 @@ public class UserDto {
         public String password;
     }
 
-    @AllArgsConstructor
     @Data
+    @AllArgsConstructor
     public static class SignupResponseDto {
         Long userId;
     }

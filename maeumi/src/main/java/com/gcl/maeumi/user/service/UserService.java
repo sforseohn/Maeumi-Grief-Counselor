@@ -5,11 +5,13 @@ import com.gcl.maeumi.user.entity.User;
 import com.gcl.maeumi.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 //import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
@@ -20,10 +22,6 @@ public class UserService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }*/
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Transactional
     public Optional<User> join(SignupRequestDto signupRequestDto) {
