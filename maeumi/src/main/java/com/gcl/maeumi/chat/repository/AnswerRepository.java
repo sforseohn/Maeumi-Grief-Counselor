@@ -1,6 +1,6 @@
-package com.gcl.maeumi.answer.repository;
+package com.gcl.maeumi.chat.repository;
 
-import com.gcl.maeumi.answer.entity.Answer;
+import com.gcl.maeumi.chat.entity.Answer;
 import com.gcl.maeumi.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

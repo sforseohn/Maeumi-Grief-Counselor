@@ -1,6 +1,6 @@
 package com.gcl.maeumi.question.entity;
-import com.gcl.maeumi.answer.AnswerType;
-import com.gcl.maeumi.answer.JsonConverter;
+import com.gcl.maeumi.chat.AnswerType;
+import com.gcl.maeumi.chat.JsonConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +25,8 @@ public class Question {
 
     @Enumerated(EnumType.STRING)
     private AnswerType answerType; // 응답 유형
+
+    private Integer nextQuestion; // 다음 질문 번호
 
     @Convert(converter = JsonConverter.class)
     @Column(columnDefinition = "TEXT")

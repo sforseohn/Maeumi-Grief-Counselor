@@ -1,4 +1,4 @@
-package com.gcl.maeumi.answer.service;
+package com.gcl.maeumi.chat.service;
 
 import okhttp3.*;
 import org.json.JSONArray;

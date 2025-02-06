@@ -1,6 +1,6 @@
-package com.gcl.maeumi.answer.controller;
+package com.gcl.maeumi.chat.controller;
 
-import com.gcl.maeumi.answer.service.OpenAIService;
+import com.gcl.maeumi.chat.service.OpenAIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
