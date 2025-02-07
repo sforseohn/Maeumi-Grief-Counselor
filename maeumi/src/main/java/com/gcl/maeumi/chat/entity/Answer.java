@@ -30,9 +30,9 @@ public class Answer {
 
     private String sessionId; // 세션 ID
 
-    private String answerText; // 사용자 응답 데이터
+    private String userResponse; // 사용자 응답 데이터
 
-    private LocalDateTime createdTime = LocalDateTime.now();
+    private LocalDateTime createdTime;
 
     public static Answer from(ChatDto.ChatRequestDto request, User user) {
         return Answer.builder()
@@ -40,7 +40,8 @@ public class Answer {
                 .scenarioNum(request.getScenarioNum())
                 .questionNum(request.getCurQuestion())
                 .sessionId(request.getSessionId())
-                .answerText(request.getUserResponse())
+                .userResponse(request.getUserResponse())
+                .createdTime(LocalDateTime.now())
                 .build();
     }
 }

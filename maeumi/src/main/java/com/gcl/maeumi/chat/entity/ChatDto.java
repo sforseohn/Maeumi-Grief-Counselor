@@ -2,7 +2,9 @@ package com.gcl.maeumi.chat.entity;
 
 import com.gcl.maeumi.chat.AnswerType;
 import com.gcl.maeumi.question.entity.Question;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -14,10 +16,19 @@ public class ChatDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatRequestDto {
+        @NotNull
         private Long userId;
+
+        @NotNull
         private Integer scenarioNum;
+
+        @NotBlank
         private String sessionId;
+
+        @NotNull
         private Integer curQuestion;
+
+        @NotNull
         private String userResponse;
     }
 
