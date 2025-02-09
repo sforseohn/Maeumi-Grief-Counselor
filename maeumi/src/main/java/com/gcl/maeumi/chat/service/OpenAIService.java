@@ -1,5 +1,9 @@
 package com.gcl.maeumi.chat.service;
 
+import com.gcl.maeumi.chat.entity.ChatDto;
+import com.gcl.maeumi.chat.entity.ChatDto.OpenAIDto;
+import com.gcl.maeumi.common.error.BusinessException;
+import com.gcl.maeumi.common.error.ErrorCode;
 import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,99 +19,131 @@ import java.util.concurrent.TimeUnit;
 public class OpenAIService {
     private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
     private static final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
+    private static final String MODEL_NAME = "gpt-4o-mini";
 
     @Value("${openai.api-key}")
     private String apiKey;
     private final OkHttpClient client;
 
     public OpenAIService() {
-        // Create OkHttpClient with a timeout of 300 seconds
         this.client = new OkHttpClient.Builder()
                 .readTimeout(50, TimeUnit.SECONDS)
                 .build();
     }
 
-    public String analyzeEmotion(String promptText, String testSentence) {
-        try {
-            // 프롬프트와 사용자 입력을 바탕으로 요청 생성
-            JSONObject requestBody = createRequestBody(promptText, testSentence);
-            // OpenAI API 요청 전송
-            String responseJson = getOpenAIResponse(requestBody);
-            // string 형식으로 감정 분석 결과 반환
-            return extractContent(responseJson);
-        } catch (Exception e) {
-            logger.error("Error analyzing emotion: {}", e.getMessage(), e);
-            return null;
-        }
+    // 사용자의 응답을 바탕으로 감정 분석 수행
+    public OpenAIDto analyzeEmotion(OpenAIDto request) {
+        String userResponse = request.getText();
+        JSONObject requestBody = buildRequestMessage(userResponse);
+        String responseJson = sendRequestToOpenAI(requestBody);
+
+        return OpenAIDto.from(extractResponse(responseJson));
     }
 
-    // OpenAI API 요청 생성
-    private JSONObject createRequestBody(String promptText, String testSentence) {
-        JSONArray messagesArray = new JSONArray()
-                .put(new JSONObject().put("role", "system").put("content", promptText))
-                .put(new JSONObject().put("role", "user").put("content", testSentence));
-
+    // OpenAI API에 보낼 Request message 생성
+    private JSONObject buildRequestMessage(String userResponse) {
         return new JSONObject()
-                .put("model", "gpt-4o-mini")
-                .put("messages", messagesArray);
+                .put("model", MODEL_NAME)
+                .put("messages", new JSONArray()
+                    .put(new JSONObject().put("role", "system").put("content", getSystemMessage()))
+                    .put(new JSONObject().put("role", "user").put("content", userResponse))
+                );
     }
 
-    // OpenAI API 요청을 보내고 응답 반환
-    private String getOpenAIResponse(JSONObject requestBody) throws IOException {
-        RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody.toString());
+    private String getSystemMessage() {
+        return """
+                당신은 애도 상담사 챗봇입니다. 사용자는 애도와 관련된 감정적이고 민감한 이야기를 나누기 위해 당신을 찾았습니다. 사용자의 답변을 바탕으로 감정 상태를 분석하고 공감해주세요.
 
+                - 모든 답변은 한글 줄글 1~2문장으로 하세요.
+                - 응답은 진심 어린 위로와 공감을 전달하되, 해결책을 제안하기보다는 감정과 경험을 받아들이는 형태로만 작성하세요.
+                - 자연스럽고 인간적인 존댓말로 답변을 작성하되, 이모티콘이나 불필요한 꾸밈은 사용하지 마세요.
+                - 예를 들어, "친구들에게서 이해받지 못한다는 깊은 외로움과 슬픔을 느끼셨군요. 혼자서도 정말 많이 애쓰셨을 텐데, 그 마음이 고스란히 전해져요."처럼 사용자의 감정을 인정하는 데만 집중하세요.
+                """;
+    }
+
+    // OpenAI API에 요청 전송 및 응답 반환
+    private String sendRequestToOpenAI(JSONObject requestBody) {
         Request request = new Request.Builder()
                 .url(OPENAI_URL)
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Content-Type", "application/json")
-                .post(body)
+                .post(RequestBody.create(requestBody.toString(), MediaType.parse("application/json")))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
+            if (response.body() == null) {
+                throw new BusinessException(ErrorCode.OPENAI_RESPONSE_INVALID);
+            }
+
             String responseBody = response.body().string();
 
             if (!response.isSuccessful()) {
-                // OpenAI API에서 반환하는 에러 메시지 가져오기
-                String errorMessage = "Unknown error";
-                try {
-                    JSONObject errorJson = new JSONObject(responseBody);
-                    errorMessage = errorJson.has("error") ? errorJson.getJSONObject("error").getString("message") : response.message();
-                } catch (Exception e) {
-                    logger.error("Failed to parse error response: {}", e.getMessage(), e);
-                }
-
-                // 로그 출력 (HTTP 코드 + 상세 에러 메시지)
-                logger.error("OpenAI API Request failed: HTTP {} - {} | Error: {}", response.code(), response.message(), errorMessage);
+                handleErrorResponse(response.code(), response.message(), responseBody);
             }
             return responseBody;
+        } catch (IOException e) {
+            logger.error("OpenAI API 요청 실패: {}", e.getMessage(), e);
+            throw new BusinessException(ErrorCode.OPENAI_REQUEST_FAILED);
+        }
+    }
+
+    // OpenAI 오류 응답 처리
+    private void handleErrorResponse(int statusCode, String message, String responseBody) {
+        ErrorCode errorCode = mapOpenAIError(responseBody);
+        logger.error("OpenAI API 요청 실패: HTTP {} - {}, 오류 코드: {}", statusCode, message, errorCode);
+        throw new BusinessException(errorCode);
+    }
+
+    // OpenAI 오류 메시지로부터 오류 코드 반환
+    private ErrorCode mapOpenAIError(String responseBody) {
+        String errorMessage = parseErrorMessage(responseBody);
+
+        if (errorMessage == null) {
+            return ErrorCode.OPENAI_REQUEST_FAILED;
+        }
+
+        if (errorMessage.contains("invalid_api_key")) {
+            return ErrorCode.OPENAI_INVALID_API_KEY;
+        }
+
+        if (errorMessage.contains("quota")) {
+            return ErrorCode.OPENAI_QUOTA_EXCEEDED;
+        }
+
+        return ErrorCode.OPENAI_REQUEST_FAILED;
+    }
+
+    // OpenAI API 응답에서 오류 메시지 추출
+    private String parseErrorMessage(String responseBody) {
+        try {
+            JSONObject jsonResponse = new JSONObject(responseBody);
+            return jsonResponse.optJSONObject("error") != null ?
+                    jsonResponse.getJSONObject("error").optString("message", null) :
+                    null;
+        } catch (Exception e) {
+            logger.warn("OpenAI 응답에서 오류 메시지를 파싱할 수 없음: {}", responseBody);
+            return null;
         }
     }
 
     // OpenAI API 응답에서 감정 분석 결과 추출
-    private String extractContent(String responseJson) {
-        if (responseJson == null) {
-            return null;
+    private String extractResponse(String responseJson) {
+        JSONObject response = new JSONObject(responseJson);
+        JSONArray choices = response.optJSONArray("choices");
+
+        if (choices == null || choices.isEmpty()) {
+            throw new BusinessException(ErrorCode.OPENAI_RESPONSE_INVALID);
         }
 
-        JSONObject responseObj = new JSONObject(responseJson);
-        // OpenAI API의 정상 응답인지 확인
-        if (responseObj.has("choices")) {
-            return responseObj.getJSONArray("choices")
-                    .getJSONObject(0)
-                    .getJSONObject("message")
-                    .getString("content");
+        String content = choices.getJSONObject(0)
+                .optJSONObject("message")
+                .optString("content", "")
+                .trim();
+
+        if (content.isEmpty()) {
+            throw new BusinessException(ErrorCode.OPENAI_RESPONSE_INVALID);
         }
 
-        // 오류 응답이 있을 경우 에러 메시지 반환
-        if (responseObj.has("error")) {
-            JSONObject errorObj = responseObj.getJSONObject("error");
-            String errorMessage = errorObj.optString("message", "Unknown error");
-            String errorCode = errorObj.optString("code", "Unknown code");
-
-            logger.error("OpenAI API Error: Code: {}, Message: {}", errorCode, errorMessage);
-            return "Error: " + errorMessage + " (Code: " + errorCode + ")";
-        }
-
-        return "Error: Unexpected response format.";
+        return content;
     }
 }

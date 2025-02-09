@@ -1,6 +1,6 @@
 package com.gcl.maeumi.chat.controller;
 
-import com.gcl.maeumi.chat.service.OpenAIService;
+import com.gcl.maeumi.chat.service.OpenAITesterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,11 +14,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/emotion-analysis")
 public class EmotionAnalysisController {
-    private final OpenAIService openAIService;
+    private final OpenAITesterService openAITesterService;
 
     @Autowired
-    public EmotionAnalysisController(OpenAIService openAIService) {
-        this.openAIService = openAIService;
+    public EmotionAnalysisController(OpenAITesterService openAITesterService) {
+        this.openAITesterService = openAITesterService;
     }
 
     @PostMapping
@@ -28,7 +28,7 @@ public class EmotionAnalysisController {
         Map<String, String> responseMap = new HashMap<>();
 
         try {
-            String analysis = openAIService.analyzeEmotion(promptText, testSentence);
+            String analysis = openAITesterService.analyzeEmotion(promptText, testSentence);
             responseMap.put("analysis", analysis);
         } catch (Exception e) {
             // 로깅 프레임워크를 사용한 예외 처리

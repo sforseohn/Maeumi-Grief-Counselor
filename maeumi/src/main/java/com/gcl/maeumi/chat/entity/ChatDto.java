@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-@Getter
 public class ChatDto {
 
     @Data
@@ -49,6 +48,21 @@ public class ChatDto {
                     .questionText(nextQuestion.getQuestionText())
                     .answerType(nextQuestion.getAnswerType())
                     .options(nextQuestion.getOptions())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OpenAIDto {
+        @NotBlank
+        private String text;
+
+        public static OpenAIDto from(String text) {
+            return OpenAIDto.builder()
+                    .text(text)
                     .build();
         }
     }
