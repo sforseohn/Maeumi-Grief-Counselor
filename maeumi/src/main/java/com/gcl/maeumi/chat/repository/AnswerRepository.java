@@ -11,8 +11,9 @@ import java.util.Optional;
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
     Optional<Answer> findByUser(User user);
 
-    // scenarioNum, questionNum을 기반으로 질문 찾기
-    Optional<Answer> findByScenarioNumAndQuestionNum(Integer scenarioNum, Integer questionNum);
+    Optional<Answer> findBySessionIdAndQuestionNum(String sessionId, int questionNum);
 
-    Optional<Answer> findBySessionId(String sessionId);
+    // 특정 사용자의 특정 시나리오에서 가장 최근의 세션 ID 가져오기
+    Optional<Answer> findTopByUserIdAndScenarioNumOrderByCreatedTimeDesc(Long userId, Integer scenarioNum);
+
 }
