@@ -1,0 +1,20 @@
+.choice-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 10px;
+}
+
+.choice-button {
+    margin: 5px;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.choice-button:hover {
+    background: #339933;
+    color: white;
+}
