@@ -1,4 +1,5 @@
 package com.gcl.maeumi.chat.entity;
+import com.gcl.maeumi.chat.dto.ChatDto;
 import com.gcl.maeumi.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
