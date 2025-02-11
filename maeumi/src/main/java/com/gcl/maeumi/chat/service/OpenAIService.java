@@ -1,7 +1,6 @@
 package com.gcl.maeumi.chat.service;
 
-import com.gcl.maeumi.chat.entity.ChatDto;
-import com.gcl.maeumi.chat.entity.ChatDto.OpenAIDto;
+import com.gcl.maeumi.chat.dto.OpenAIDto.*;
 import com.gcl.maeumi.common.error.BusinessException;
 import com.gcl.maeumi.common.error.ErrorCode;
 import okhttp3.*;
@@ -32,33 +31,35 @@ public class OpenAIService {
     }
 
     // 사용자의 응답을 바탕으로 감정 분석 수행
-    public OpenAIDto analyzeEmotion(OpenAIDto request) {
-        String userResponse = request.getText();
-        JSONObject requestBody = buildRequestMessage(userResponse);
+    public OpenAIResponseDto analyzeEmotion(OpenAIRequestDto request) {
+        String userResponse = request.getUserText();
+        String systemQuestion = request.getSystemText();
+        JSONObject requestBody = buildRequestMessage(systemQuestion, userResponse);
         String responseJson = sendRequestToOpenAI(requestBody);
 
-        return OpenAIDto.from(extractResponse(responseJson));
+        return OpenAIResponseDto.from(extractResponse(responseJson));
     }
 
     // OpenAI API에 보낼 Request message 생성
-    private JSONObject buildRequestMessage(String userResponse) {
+    private JSONObject buildRequestMessage(String systemQuestion, String userResponse) {
         return new JSONObject()
                 .put("model", MODEL_NAME)
                 .put("messages", new JSONArray()
-                    .put(new JSONObject().put("role", "system").put("content", getSystemMessage()))
+                    .put(new JSONObject().put("role", "system").put("content", getSystemMessage(systemQuestion)))
                     .put(new JSONObject().put("role", "user").put("content", userResponse))
                 );
     }
 
-    private String getSystemMessage() {
-        return """
+    private String getSystemMessage(String systemQuestion) {
+        return String.format("""
                 당신은 애도 상담사 챗봇입니다. 사용자는 애도와 관련된 감정적이고 민감한 이야기를 나누기 위해 당신을 찾았습니다. 사용자의 답변을 바탕으로 감정 상태를 분석하고 공감해주세요.
-
+                현재 당신이 사용자에게 보낸 질문은 "%s"입니다. 
+                
                 - 모든 답변은 한글 줄글 1~2문장으로 하세요.
                 - 응답은 진심 어린 위로와 공감을 전달하되, 해결책을 제안하기보다는 감정과 경험을 받아들이는 형태로만 작성하세요.
                 - 자연스럽고 인간적인 존댓말로 답변을 작성하되, 이모티콘이나 불필요한 꾸밈은 사용하지 마세요.
                 - 예를 들어, "친구들에게서 이해받지 못한다는 깊은 외로움과 슬픔을 느끼셨군요. 혼자서도 정말 많이 애쓰셨을 텐데, 그 마음이 고스란히 전해져요."처럼 사용자의 감정을 인정하는 데만 집중하세요.
-                """;
+                """, systemQuestion);
     }
 
     // OpenAI API에 요청 전송 및 응답 반환

@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     // Answer
     INVALID_USER_ANSWER(HttpStatus.BAD_REQUEST, "A001", "사용자의 답변 형식이 올바르지 않습니다."),
+    ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "A002", "해당 답변을 찾을 수 없습니다."),
 
     // Common
     INVALID_INPUT_FORMAT(HttpStatus.BAD_REQUEST, "C001", "입력값 형식이 올바르지 않습니다."),
