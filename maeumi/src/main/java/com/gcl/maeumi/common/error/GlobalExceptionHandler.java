@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponseDto.of(errorCode, request.getRequestURI()));
     }
 
-    // 입력 오류 분석
+    // 입력 오류
     private ErrorCode determineInputErrorCode(HttpMessageNotReadableException e) {
         Throwable cause = e.getCause();
 
@@ -62,8 +62,13 @@ public class GlobalExceptionHandler {
     // 그 외 모든 unexpected 예외 처리
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ErrorResponseDto> handleException(Exception e, HttpServletRequest request) {
+        if (e.getMessage() != null && e.getMessage().contains("No static resource")) { // 정적 파일 예외는 로그 없이 404 응답 반환
+            return ResponseEntity.notFound().build();
+        }
+
         log.error("Unexpected Exception 발생: {}", e.getMessage());
         final ErrorResponseDto response = ErrorResponseDto.of(ErrorCode.INTERNAL_SERVER_ERROR, request.getRequestURI());
         return ResponseEntity.status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus()).body(response);
     }
+
 }

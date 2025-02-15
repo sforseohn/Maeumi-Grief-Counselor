@@ -8,40 +8,72 @@ import TextInput from "../components/ChatPage/TextInput";
 import "../styles/global.css";
 import "../styles/ChatPage.css";
 
+const generateDeviceId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+const getOrCreateDeviceId = () => {
+    let deviceId = localStorage.getItem("deviceId");
+    if (!deviceId) {
+        deviceId = generateDeviceId();
+        localStorage.setItem("deviceId", deviceId);
+    }
+    return deviceId;
+};
+
+const STORAGE_VERSION = "2"; // 서버에서 관리하는 최신 버전
+
+const checkStorageVersion = () => {
+    const clientVersion = localStorage.getItem("storageVersion");
+
+    if (clientVersion !== STORAGE_VERSION) {
+        console.log("💾 스토리지 버전 변경 감지, 초기화 진행...");
+        localStorage.clear();
+        localStorage.setItem("storageVersion", STORAGE_VERSION);
+    }
+};
+
 export default function ChatPage() {
     const [chat, setChat] = useRecoilState(chatState);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const chatMessagesRef = useRef<HTMLDivElement>(null);
-    const [sessionId, setSessionId] = useState(() => sessionStorage.getItem("sessionId") || "");
 
-    const userId = 1;
-    const scenarioNum = 1;
+    const deviceId = useRef(getOrCreateDeviceId());
+    const [sessionId, setSessionId] = useState(() => localStorage.getItem("sessionId") || "");
     const curQuestionRef = useRef(1);
     const [curQuestion, setCurQuestion] = useState(1);
 
+    const userId = 1;
+    const scenarioNum = 1;
+
     useEffect(() => {
+        checkStorageVersion();
         const loadChatHistory = async () => {
             try {
                 const savedChat = localStorage.getItem("chatHistory");
-                const storedSessionId = sessionStorage.getItem("sessionId");
+                const storedSessionId = localStorage.getItem("sessionId");
+                const savedCurQuestion = localStorage.getItem("curQuestion");
 
                 if (savedChat) {
                     const parsedChat = JSON.parse(savedChat);
 
-                    // 저장된 세션 ID가 현재 세션과 같은지 확인
-                    if (parsedChat.sessionId === storedSessionId && Array.isArray(parsedChat.messages) && parsedChat.messages.length > 0) {
-                        setChat(parsedChat); // 세션 일치 + 유효한 데이터 → 불러오기
+                    if (
+                        parsedChat.deviceId === deviceId.current &&
+                        parsedChat.sessionId === storedSessionId &&
+                        parsedChat.messages.length > 0
+                    ) {
+                        setChat(parsedChat); // 동일한 기기 & 동일한 세션 → 이전 채팅 불러오기
+                        if (savedCurQuestion) {
+                            setCurQuestion(parseInt(savedCurQuestion));
+                            curQuestionRef.current = parseInt(savedCurQuestion);
+                        }
                         return;
                     }
                 }
 
-                console.log("세션 ID 불일치 또는 채팅 기록 없음. 서버에서 새로 불러옵니다.");
-                await initializeChat(); // 세션 불일치 또는 데이터 없음 → 초기화
-
+                await initializeChat(); // 새로운 기기이거나 세션 ID 불일치 시 초기화
             } catch (error) {
-                console.warn("채팅 기록 로드 중 오류 발생. 초기화", error);
-                await initializeChat(); // JSON 파싱 오류 발생 시 초기화
+                console.warn("채팅 기록 로드 중 오류 발생, 초기화 진행:", error);
+                await initializeChat();
             }
         };
 
@@ -50,9 +82,13 @@ export default function ChatPage() {
 
 
     useEffect(() => {
-        // 채팅 내용이 바뀌면 localStorage에 저장
-        localStorage.setItem("chatHistory", JSON.stringify(chat));
-    }, [chat]);
+        if (chat.messages.length > 0) {
+            localStorage.setItem(
+                "chatHistory",
+                JSON.stringify({ ...chat, deviceId: deviceId.current, sessionId })
+            );
+        }
+    }, [chat, sessionId]); // 세션 ID 변경 시에도 저장
 
     useEffect(() => {
         chatMessagesRef.current?.scrollTo({ top: chatMessagesRef.current.scrollHeight, behavior: "smooth" });
@@ -60,6 +96,11 @@ export default function ChatPage() {
 
     useEffect(() => {
         curQuestionRef.current = curQuestion;
+        localStorage.setItem("curQuestion", curQuestion.toString());
+    }, [curQuestion]);
+
+    useEffect(() => {
+        localStorage.setItem("curQuestion", curQuestion.toString());
     }, [curQuestion]);
 
     // 대화 초기화 함수
@@ -69,14 +110,19 @@ export default function ChatPage() {
             const data = await fetchFirstQuestion(userId, scenarioNum);
 
             // 세션 ID 동기화
-            if (data.sessionId && data.sessionId !== sessionStorage.getItem("sessionId")) {
-                sessionStorage.setItem("sessionId", data.sessionId);
+            if (data.sessionId && data.sessionId !== localStorage.getItem("sessionId")) {
+                localStorage.setItem("sessionId", data.sessionId);
                 setSessionId(data.sessionId);
             }
 
-            // 첫 번째 질문 저장 및 처리
-            setCurQuestion(data.nextQuestion);
-            curQuestionRef.current = data.nextQuestion;
+            // `curQuestion`이 저장된 값이 있으면 복원
+            const savedCurQuestion = localStorage.getItem("curQuestion");
+            const nextQuestion = savedCurQuestion ? parseInt(savedCurQuestion) : data.nextQuestion;
+
+            setCurQuestion(nextQuestion);
+            curQuestionRef.current = nextQuestion;
+            localStorage.setItem("curQuestion", nextQuestion.toString());
+
             updateChatState("bot", data.questionText, data.answerType, data.options);
 
             // SKIP 응답 자동 처리
@@ -90,7 +136,6 @@ export default function ChatPage() {
             setLoading(false);
         }
     };
-
 
     // 사용자의 응답을 처리하는 함수
     const handleResponse = async (userResponse: string) => {
@@ -116,6 +161,7 @@ export default function ChatPage() {
             }
 
             updateChatState("bot", response.questionText, response.answerType, response.options);
+
             setCurQuestion(response.nextQuestion);
             curQuestionRef.current = response.nextQuestion;
 
