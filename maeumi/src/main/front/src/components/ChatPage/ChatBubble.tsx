@@ -9,8 +9,16 @@ interface ChatBubbleProps {
 
 export default function ChatBubble({ sender, text }: ChatBubbleProps) {
     return (
-        <div className={`chat-bubble ${sender === "user" ? "user-message" : "bot-message"}`}>
-            {text}
+        <div className={`chat-bubble ${sender === "bot" ? "bot-message" : "user-message"}`}>
+            {text === "typing" ? (
+                <div className="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            ) : (
+                text
+            )}
         </div>
     );
 }

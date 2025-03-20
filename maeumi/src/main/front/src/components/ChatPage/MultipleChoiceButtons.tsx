@@ -18,3 +18,4 @@ export default function MultipleChoiceButtons({ options, onSelect }: { options: 
         </div>
     );
 }
+

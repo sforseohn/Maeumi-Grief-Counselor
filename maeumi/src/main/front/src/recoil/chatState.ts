@@ -6,8 +6,8 @@ interface Message {
     text: string;
 }
 
-// 채팅 
-interface ChatState {
+// 채팅
+export interface ChatState {
     messages: Message[];
     answerType: "SKIP" | "MULTIPLE_CHOICE" | "DESCRIPTIVE" | null;
     options: string[];
