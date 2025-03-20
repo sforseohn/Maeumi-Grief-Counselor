@@ -6,13 +6,48 @@
 }
 
 .user-message {
-    background-color: #339933;
-    color: white;
+    background-color: var(--point-color);
     align-self: flex-end;
 }
 
 .bot-message {
     background-color: #e5e7eb;
-    color: black;
     align-self: flex-start;
+    color: black;
+}
+
+/* 작성 중... 표시 */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background-color: gray;
+    border-radius: 50%;
+    animation: typingAnimation 1.5s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+    animation-delay: 0s;
+}
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingAnimation {
+    0%, 100% {
+        opacity: 0.3;
+        transform: translateY(0px);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-5px);
+    }
 }
