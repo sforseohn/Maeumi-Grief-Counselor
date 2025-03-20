@@ -1,4 +1,4 @@
-/* ✅ 입력창 스타일 */
+/* ✅ 입력창 컨테이너 */
 .chat-input-container {
     display: flex;
     align-items: center;
@@ -13,7 +13,7 @@
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
 }
 
-/* ✅ 입력 필드 */
+/* ✅ 줄바꿈 가능한 입력창 */
 .chat-input {
     flex-grow: 1;
     padding: 10px;
@@ -22,11 +22,16 @@
     border-radius: 8px;
     outline: none;
     transition: border-color 0.2s ease-in-out;
+    resize: none; /* 사용자가 크기 조절 불가 */
+    min-height: 40px; /* 기본 높이 */
+    max-height: 150px; /* 최대 높이 */
+    overflow-y: auto;
+    white-space: pre-wrap; /* 줄바꿈 허용 */
 }
 
 /* ✅ 포커스 효과 */
 .chat-input:focus {
-    border-color: #339933;
+    border-color: var(--point-color);
     box-shadow: 0 0 5px rgba(51, 153, 51, 0.2);
 }
 
@@ -34,8 +39,7 @@
 .send-button {
     padding: 10px 18px;
     border: none;
-    background-color: #339933;
-    color: white;
+    background-color: var(--point-color);
     font-size: 16px;
     font-weight: 600;
     border-radius: 8px;
@@ -46,13 +50,13 @@
 
 /* ✅ 버튼 hover 효과 */
 .send-button:hover {
-    background-color: #2b7a2b;
+    background-color: #D8B89C;
     transform: scale(1.05);
 }
 
 /* ✅ 버튼 active 효과 */
 .send-button:active {
-    background-color: #1e5c1e;
+    background-color: #C4A68C;
     transform: scale(0.95);
 }
 
@@ -73,5 +77,6 @@
         width: 100%;
         padding: 12px;
         font-size: 14px;
+        background-color: var(--point-color)
     }
 }
